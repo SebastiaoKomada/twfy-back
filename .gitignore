@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+*.db
+.env
+.env.*
+!.env.example
+!deploy/.env.ec2.example
+.DS_Store
+*.log
+deploy/.env.ec2
+deploy/backups/

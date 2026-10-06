@@ -1,0 +1,15 @@
+{$API_DOMAIN} {
+	# A porta 443 é restrita à turma; o ACME valida pela porta pública 80.
+	tls {
+		issuer acme {
+			disable_tlsalpn_challenge
+		}
+	}
+	@turma remote_ip {$ALLOWED_CIDRS}
+	handle @turma {
+		reverse_proxy backend:8000
+	}
+	handle {
+		respond "Acesso restrito ao laboratorio." 403
+	}
+}

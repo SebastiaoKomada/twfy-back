@@ -1,0 +1,50 @@
+name: tw4y
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE:?Defina BACKEND_IMAGE no arquivo .env.ec2}
+    environment:
+      ENVIRONMENT: production
+      DATABASE_PATH: /app/data/tw4y.db
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-7}
+      GLOBAL_RATE_LIMIT: ${GLOBAL_RATE_LIMIT:-120/minute}
+      SEED_DEMO_DATA: "false"
+      # Somente o Caddy acessa a API pela rede privada do Docker.
+      FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - backend_data:/app/data
+    expose:
+      - "8000"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Defina o dominio da API}
+      ALLOWED_CIDRS: ${ALLOWED_CIDRS:?Defina os IPs ou redes da turma separados por espaco}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  backend_data:
+  caddy_data:
+  caddy_config:
